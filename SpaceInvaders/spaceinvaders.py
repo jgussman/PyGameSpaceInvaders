@@ -52,9 +52,13 @@ class Defender():
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
             self.x += -2
+            if self.x < 1:
+                self.x = 1
             self.rect.move_ip(self.x,self.y)
         if keys[pygame.K_RIGHT]:
             self.x += 2
+            if self.x > display_width - self.w:
+                self.x = display_width- self.w
             self.rect.move_ip(self.x,self.y)
     
     def draw(self,surface):
