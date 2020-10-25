@@ -1,6 +1,5 @@
 import pygame
 from pygame.locals import *
-from alien import Alien
 
 pygame.init()
 
@@ -10,15 +9,16 @@ display_height = 600
 black = (0,0,0)
 white = (255,255,255)
 red = (255,0,0)
+purple = (147,112,219)
 
 AlienSize = (10,10)
+BulletSize = (2,5)
 DefenderSize = (20,20)
 
 
 gameDisplay = pygame.display.set_mode((display_width,display_height))
 pygame.display.set_caption('Space Invaders')
 clock = pygame.time.Clock()
-
 
 class Alien():
     
@@ -37,16 +37,38 @@ class Alien():
                          [self.x,self.y,self.h,self.w])
 
 
+class Bullet():
+
+    def __init__(self,x,y =display_height * .95):
+        h,w = BulletSize
+        self.h = h
+        self.w = w
+        self.x = x
+        self.y = y
+        self.rect = pygame.draw.rect(gameDisplay,purple,
+                                    [x,y,h,w])
+    
+    def update(self):
+        self.y -= 5
+        self.rect.move_ip(self.x,self.y)
+        
+
 class Defender():
 
     def __init__(self,x = display_width * .5, y = display_height * .95):
         h,w = DefenderSize
+        bullet_h,bullet_w = BulletSize
         self.h = h
         self.w = w
         self.x = x
         self.y = y
         self.rect = pygame.draw.rect(gameDisplay,red,
                                     [x,y,h,w])
+        self.bullet = None
+        self.bullet_x = x
+        self.bullet_y = y
+        self.bullet_h = bullet_h
+        self.bullet_w = bullet_w
     
     def update(self):
         keys = pygame.key.get_pressed()
@@ -60,15 +82,43 @@ class Defender():
             if self.x > display_width - self.w:
                 self.x = display_width- self.w
             self.rect.move_ip(self.x,self.y)
+        if keys[pygame.K_SPACE]:
+            self.fire_bullet()
+        if not (self.bullet is None):
+            self.update_bullet()
+
+        
+    def fire_bullet(self):
+        self.bullet_x = self.x + self.w//2
+        self.bullet_y = self.y-5
+        self.bullet = pygame.draw.rect(gameDisplay,purple,
+                                        [self.bullet_x,self.bullet_y,
+                                         self.bullet_h,self.bullet_w])
     
     def draw(self,surface):
         pygame.draw.rect(gameDisplay,red,
                          [self.x,self.y,self.h,self.w])
+        if not (self.bullet is None):
+            pygame.draw.rect(gameDisplay,purple,
+                             [self.bullet_x,self.bullet_y,
+                              self.bullet_h,self.bullet_w])
+
+    def update_bullet(self):
+        self.bullet_y -= 2
+        self.bullet = pygame.draw.rect(gameDisplay,purple,
+                                       [self.bullet_x,self.bullet_y,
+                                       self.bullet_h,self.bullet_w])
+        if self.bullet_y < 0:
+            self.bullet = None
+            self.bullet_y = self.y
+        
+    
+    def get_x(self):
+        return self.x
 
 def game_loop():
     gameExit = False
-    movements = {pygame.K_LEFT: -5,
-                 pygame.K_RIGHT: 5}
+    bullet = None
     while not gameExit:
         x_change = 0
         for event in pygame.event.get():
@@ -78,7 +128,8 @@ def game_loop():
 
         gameDisplay.fill(black) 
         defender.draw(gameDisplay)
-        alien.draw(gameDisplay)       
+        alien.draw(gameDisplay)  
+        print(defender.x)    
         defender.update()
         pygame.display.update()
 
