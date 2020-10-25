@@ -19,10 +19,23 @@ gameDisplay = pygame.display.set_mode((display_width,display_height))
 pygame.display.set_caption('Space Invaders')
 clock = pygame.time.Clock()
 
-def alien(x,y,group):
-    h,w = AlienSize
-    pygame.draw.rect(gameDisplay,white,
-                     [x,y,h,w])
+
+class Alien():
+    
+    def __init__(self,x,y,group):
+        h,w = AlienSize
+        self.h = h
+        self.w = w
+        self.x = x
+        self.y = y
+        self.group = group
+        self.rect = pygame.draw.rect(gameDisplay,white,
+                                     [x,y,h,w])
+    
+    def draw(self,surface):
+        pygame.draw.rect(gameDisplay,white,
+                         [self.x,self.y,self.h,self.w])
+
 
 class Defender():
 
@@ -60,7 +73,8 @@ def game_loop():
                 quit()
 
         gameDisplay.fill(black) 
-        defender.draw(gameDisplay)       
+        defender.draw(gameDisplay)
+        alien.draw(gameDisplay)       
         defender.update()
         pygame.display.update()
 
@@ -69,5 +83,5 @@ def game_loop():
 
 if __name__ == "__main__":
     defender = Defender()
-    alien(300,300,'red')
+    alien = Alien(100,300,'white')
     game_loop()
