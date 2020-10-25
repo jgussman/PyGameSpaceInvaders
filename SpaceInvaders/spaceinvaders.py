@@ -32,41 +32,36 @@ class Defender():
         self.w = w
         self.x = x
         self.y = y
-        pygame.draw.rect(gameDisplay,red,
-                        [x,y,h,w])
+        self.rect = pygame.draw.rect(gameDisplay,red,
+                                    [x,y,h,w])
     
-    def update(self,x_change):
-        self.x += x_change
+    def update(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT]:
+            self.x += -2
+            self.rect.move_ip(self.x,self.y)
+        if keys[pygame.K_RIGHT]:
+            self.x += 2
+            self.rect.move_ip(self.x,self.y)
+    
+    def draw(self,surface):
         pygame.draw.rect(gameDisplay,red,
                          [self.x,self.y,self.h,self.w])
 
-def defender(x = 0,y = 0):
-    h,w = DefenderSize
-    pygame.draw.rect(gameDisplay,red,
-                    [display_width*.5,display_height*.85,h,w])
-
-
 def game_loop():
     gameExit = False
-    
+    movements = {pygame.K_LEFT: -5,
+                 pygame.K_RIGHT: 5}
     while not gameExit:
         x_change = 0
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
-            
-            keys_pressed = pygame.key.get_pressed()
 
-            if keys_pressed[K_SPACE]:
-                pass #shoot
-            if keys_pressed[K_LEFT]:
-                x_change = -5
-            if keys_pressed[K_RIGHT]:
-                x_change = 5
-
-        gameDisplay.fill(black)        
-        defender.update(x_change)
+        gameDisplay.fill(black) 
+        defender.draw(gameDisplay)       
+        defender.update()
         pygame.display.update()
 
         clock.tick(60)
