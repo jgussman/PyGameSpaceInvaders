@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import *
 from random import randint
+from Knuckle import Player
 pygame.init()
 
 display_width = 400
@@ -47,13 +48,12 @@ class Alien_Bullet():
                             [self.x,self.y,
                             self.h,self.w])
 
-
-
-
 class Alien():
 
     bullets = []
-    
+    xvelocity = 5
+    yvelocity = 10
+
     def __init__(self,x,y,group):
         h,w = AlienSize
         self.h = h
@@ -64,9 +64,6 @@ class Alien():
         self.rect = pygame.draw.rect(gameDisplay,white,
                                      [x,y,h,w])
         self.direction = 0
-        self.xvelocity = 5
-        self.yvelocity = 10
-        self.bullets = []
     
     def draw(self,surface):
         pygame.draw.rect(gameDisplay,white,
@@ -75,34 +72,45 @@ class Alien():
 
     def move_side(self):
         if self.direction < 5:
-            self.x -= self.xvelocity
+            self.x -= Alien.xvelocity
         else:
-            self.x += self.xvelocity
+            self.x += Alien.xvelocity
         self.direction = (self.direction + 1) % 11
 
     def move_down(self):
-        self.y += self.yvelocity
+        self.y += Alien.yvelocity
 
-    def increase_velocity(self):
-        self.xvelocity += 1
-        self.yvelocity += 2
+    def increase_velocity():
+        Alien.xvelocity += 1
+        Alien.yvelocity += 2
 
     def fire_bullet(self):
         x = self.x + self.w//2
         y = self.y + self.h
         Alien.bullets.append(Alien_Bullet(x,y)) 
-    
-    def update(self):
-        '''
-        to update the alien....going to need to have awareness of rows
-        rows will also move down and repeatedly go left/right
 
-        given the whole sprite list will find a range to conditonally check when to go up/down 
-        will be based on a all_sprites_list
+class None_Alien(Alien):
 
-        will also be based on updating properties of self
-        '''
+    def __init__(self):
+        self.x = 0
+        self.y = 0
+        self.h = 0
+        self.w = 0
+    def draw(self,surface):
         pass
+
+    def move_side(self):
+        pass
+
+    def move_down(self):
+        pass
+
+    def increase_velocity(self):
+        pass
+
+    def fire_bullet(self):
+        pass
+
 
 class Defender_Bullet():
 
@@ -130,7 +138,21 @@ class Defender_Bullet():
         pygame.draw.rect(gameDisplay,purple,
                             [self.x,self.y,
                             self.h,self.w])
+
+class None_Defender_Bullet(Defender_Bullet):
+
+    def __init__(self):
+        self.x = 0
+        self.y = 0
     
+    def update(self):
+        pass
+
+    def tick(self):
+        pass
+
+    def draw(self):
+        pass
 
 class Defender():
 
@@ -170,6 +192,17 @@ class Defender():
         return self.x
 
 def game_loop():
+    GAME_SCORE = 0
+    def listReplace(lst,old,new):
+        """
+        assuming elements are unique
+        So break after you find old
+        """
+        for index,item in enumerate(lst):
+            if item == old:
+                lst[index] = new
+                break
+
     '''
     Main Loop of games
     Include:
@@ -186,12 +219,34 @@ def game_loop():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
+            if event.type == player_move:
+                inputVector = [
+                    defender.h,
+                    defender.w,
+                    defender.x,
+                    defender.y,
+                    Alien.xvelocity,
+                    Alien.yvelocity
+                ]
+                for alien in armada:
+                    inputVector.extend(
+                        [alien.x,
+                        alien.y]
+                    )
+                for i in range(3):
+                    try:
+                        inputVector.extend(
+                            [Alien.bullets[i].x,
+                            Alien.bullets[i].y]
+                        )
+                    except:
+                        inputVector.extend([0,0])
+                move = player.feedForward(inputVector)
+                if move == 1:
                     defender.move_left()
-                if event.key == pygame.K_RIGHT:
+                elif move == 2:
                     defender.move_right()
-                if event.key == pygame.K_SPACE:
+                else:
                     defender.fire_bullet()
             if event.type == alien_move_side:
                 for alien in armada: alien.move_side()
@@ -201,7 +256,7 @@ def game_loop():
                 defender.loaded = True
                 pygame.time.set_timer(defender_reload,1000)
             if event.type == increase_velocity:
-                for alien in armada: alien.increase_velocity()
+                Alien.increase_velocity()
             if event.type == alien_fire_bullet:
                 armada[randint(0,len(armada)-1)].fire_bullet()
 
@@ -216,8 +271,14 @@ def game_loop():
                 if (bullet.x in range(alien.x,alien.x+alien.w) and
                     bullet.y in range(alien.y,alien.y+alien.h)):
                     defender.bullets.remove(bullet)
-                    armada.remove(alien)
+                    listReplace(armada,
+                                alien,
+                                NONE_ALIEN)
+                    GAME_SCORE += 3
         for bullet in Alien.bullets:
+            if bullet.y > display_height:
+                Alien.bullets.remove(bullet)
+                GAME_SCORE += 1
             if (bullet.x in range(int(defender.x),int(defender.x+defender.w)+1) and
                 bullet.y in range(int(defender.y),int(defender.y+defender.h)+1)):
                 gameExit = True
@@ -234,14 +295,20 @@ if __name__ == "__main__":
     for c in columns:
         for r in rows:
             armada.append(Alien(c,r,'red'))
+    nAliens = 72
     alien_move_side = pygame.USEREVENT + 1
     alien_move_down = pygame.USEREVENT + 2
     defender_reload = pygame.USEREVENT + 3
     increase_velocity = pygame.USEREVENT + 4
     alien_fire_bullet = pygame.USEREVENT + 5
+    player_move = pygame.USEREVENT + 6
     pygame.time.set_timer(alien_move_side,1000)
     pygame.time.set_timer(alien_move_down,5000)
     pygame.time.set_timer(defender_reload,1000)
     pygame.time.set_timer(increase_velocity,10000)
     pygame.time.set_timer(alien_fire_bullet,1500)
+    pygame.time.set_timer(player_move,60)
+    player = Player()
+    NONE_ALIEN = None_Alien()
+    NONE_DEFENDER_BULLET = None_Defender_Bullet()
     game_loop()
