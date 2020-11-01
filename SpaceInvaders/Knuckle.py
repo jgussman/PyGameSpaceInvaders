@@ -1,7 +1,18 @@
 from random import randint
 
+class Player():
 
-class RandomPlayer():
+    def __init__(self):
+        """
+        Abstract Class for Players
+        """
+
+    def feedForward(self,inputVector):
+        return input()
+
+
+
+class RandomPlayer(Player):
 
     def __init__(self):
         """
@@ -14,11 +25,13 @@ class RandomPlayer():
 
 
 
-class QLearningPlayer():
+class QLearningPlayer(Player):
     def __init__(self):
         """
         
         """
 
     def feedForward(self,inputVector):
-        
+        """
+
+        """
