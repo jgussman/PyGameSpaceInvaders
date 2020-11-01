@@ -187,9 +187,6 @@ class Defender():
         pygame.draw.rect(gameDisplay,red,
                          [self.x,self.y,self.h,self.w])
         for bullet in self.bullets: bullet.tick()
-        
-    def get_x(self):
-        return self.x
 
 def game_loop():
     GAME_SCORE = 0
