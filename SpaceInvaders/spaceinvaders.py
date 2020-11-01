@@ -1,7 +1,7 @@
 import pygame
 from pygame.locals import *
 from random import randint
-from Knuckle import Player
+from Knuckle import RandomPlayer
 pygame.init()
 
 display_width = 400
@@ -308,7 +308,7 @@ if __name__ == "__main__":
     pygame.time.set_timer(increase_velocity,10000)
     pygame.time.set_timer(alien_fire_bullet,1500)
     pygame.time.set_timer(player_move,60)
-    player = Player()
+    player = RandomPlayer()
     NONE_ALIEN = None_Alien()
     NONE_DEFENDER_BULLET = None_Defender_Bullet()
     game_loop()
