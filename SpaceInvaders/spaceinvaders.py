@@ -94,7 +94,7 @@ class Alien():
                                      [x,y,h,w])
         self.direction = 0
     
-    def draw(self,surface):
+    def draw(self):
         pygame.draw.rect(self.gameDisplay,Alien.white,
                          [self.x,self.y,self.h,self.w])
         for bullet in Alien.bullets: bullet.draw()
@@ -125,7 +125,8 @@ class None_Alien(Alien):
         self.y = 0
         self.h = 0
         self.w = 0
-    def draw(self,surface):
+
+    def draw(self):
         pass
 
     def move_side(self):
@@ -182,7 +183,6 @@ class Game:
     display_height = 600
     black = (0,0,0)
     white = (255,255,255)
-
     columns = range(88,413,27)
     rows = range(20,126,21)
     nAliens = 72
@@ -209,14 +209,14 @@ class Game:
                 lst[index] = new
                 break
 
-    def __init__(self,player):
+    def __init__(self,player,level = 1, score = 0,lives = 3):
         """
         Takes a player OBJECT as the argument. 
         """
         pygame.init()
         pygame.display.set_caption('Space Invaders')
         self.gameDisplay = pygame.display.set_mode((Game.display_width,Game.display_height))
-        self.gameScore = 0
+        self.gameScore = score
         self.gameExit = False
         self.armada = []
         for c in Game.columns:
@@ -224,9 +224,34 @@ class Game:
                     self.armada.append(Alien(c,r,'red',self.gameDisplay))
         self.player = player
         self.defender = Defender(self.gameDisplay,Game.display_width,Game.display_height)
-
+        self.lives = lives
+        self.level = level
+        self.kills = 0
         self.font = pygame.font.SysFont("comicsansms", 20)
 
+    def soft_reset(self):
+        self.player.x = Game.display_width // 2
+        Alien.bullets = []
+        self.defender.bullets = []
+        self.gameDisplay.fill(Game.black)
+        self.defender.draw()
+        for alien in self.armada: alien.draw()
+
+    def hard_reset(self):
+        self.armada = []
+        for c in Game.columns:
+            for r in Game.rows:
+                self.armada.append(Alien(c,r,'red',self.gameDisplay))
+        self.kills = 0
+        self.defender.bullets = []
+        self.level += 1
+        Alien.bullets = []
+        Alien.xvelocity = 4 + self.level
+        Alien.yvelocity = 9 + (self.level*2)
+        self.player.x = Game.display_width // 2
+        self.gameDisplay.fill(Game.black)
+        self.defender.draw()
+        for alien in self.armada: alien.draw()
 
     def playGame(self):
         pygame.time.set_timer(Game.alien_move_side,1000)
@@ -290,7 +315,7 @@ class Game:
             self.defender.draw()
             for bullet in self.defender.bullets: bullet.tick()
             for bullet in Alien.bullets: bullet.tick()
-            for alien in self.armada: alien.draw(self.gameDisplay)
+            for alien in self.armada: alien.draw()
             # Collisions
             for bullet in self.defender.bullets:
                 for alien in self.armada:
@@ -300,14 +325,26 @@ class Game:
                         Game.listReplace(self.armada,
                                     alien,
                                     Game.NONE_ALIEN)
-                        self.gameScore += 3
+                        self.gameScore += 3 * (self.level)
+                        self.kills += 1
             for bullet in Alien.bullets:
                 if bullet.y > Game.display_height:
                     Alien.bullets.remove(bullet)
-                    self.gameScore += 1
+                    self.gameScore += 1 * (self.level)
                 if (bullet.x in range(int(self.defender.x),int(self.defender.x+self.defender.w)+1) and
                     bullet.y in range(int(self.defender.y),int(self.defender.y+self.defender.h)+1)):
+                    self.lives -= 1
+                    if self.lives == 0:
+                        self.gameExit = True
+                    self.soft_reset()
+                    pygame.time.wait(1000)
+                    break
+            for alien in self.armada:
+                if alien.y >= self.defender.y:
                     self.gameExit = True
+            if self.kills == Game.nAliens:
+                self.hard_reset()
+                pygame.time.wait(1000)
             pygame.display.update()
 
             Game.clock.tick(60)

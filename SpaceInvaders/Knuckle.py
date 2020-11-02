@@ -8,7 +8,9 @@ class Player():
         """
 
     def feedForward(self,inputVector):
-        return input()
+        """
+
+        """
 
 
 
