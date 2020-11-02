@@ -63,17 +63,16 @@ class Game:
         self.kills = 0
         self.memory = [None] * 4
         self.memoryCounter = 0
-        self.training = {-1:[],
-                          1:[],
-                          3:[]}
+        self.training = []
         self.font = pygame.font.SysFont("comicsansms", 20)
         self.nMemoryStored = 0
+        self.previousAction = None
 
     def storeMemory(self,key):
-        self.gameScore -= key
+        self.gameScore += key
         memKey = self.memoryCounter
         lastState = self.memory[memKey:] + self.memory[:memKey]
-        self.training[key].append(lastState)
+        self.training.append((key,self.previousAction,lastState))
         self.nMemoryStored += 1
 
     def soft_reset(self):
@@ -115,28 +114,8 @@ class Game:
                     pygame.quit()
                     quit()
                 if event.type == Game.player_move:
-                    inputVector = [
-                        self.defender.h,
-                        self.defender.w,
-                        self.defender.x,
-                        self.defender.y,
-                        Alien.xvelocity,
-                        Alien.yvelocity
-                    ]
-                    for alien in self.armada:
-                        inputVector.extend(
-                            [alien.x,
-                            alien.y]
-                        )
-                    for i in range(3):
-                        try:
-                            inputVector.extend(
-                                [Alien.bullets[i].x,
-                                Alien.bullets[i].y]
-                            )
-                        except:
-                            inputVector.extend([0,0])
-                    move = self.player.feedForward(inputVector)
+                    move = self.player.feedForward([])
+                    self.previousAction = move
                     if move == 1:
                         self.defender.move_left()
                     elif move == 2:
@@ -206,11 +185,13 @@ class Game:
             if self.nMemoryStored == 50:
                 counter = 0
                 with open("training.csv",'w') as data:
-                    for key in game.training:
-                        for lst2d in game.training[key]:
-                            np.savez(f"savedStates/{counter}",*lst2d)
-                            data.write(f"{key}, savedStates/{counter}.npz\n")
-                            counter += 1
+                    data.write("Reward,Action,state\n")
+                    for point in self.training:
+                        reward,action,lst2d = point
+                        np.savez(f"savedStates/{counter}",*lst2d)
+                        data.write(f"{reward}, {action}, savedStates/{counter}.npz")
+                        data.write("\n")
+                        counter += 1
                 self.gameExit = True
             self.memory = [None] * 4
             pygame.display.update()
