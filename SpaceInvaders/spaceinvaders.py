@@ -34,8 +34,6 @@ class Bullet():
         self.update()
         self.draw()
 
-
-
 class Alien_Bullet(Bullet):
 
     color = (0,255,255)
@@ -77,7 +75,6 @@ class None_Defender_Bullet(Bullet):
 
     def draw(self):
         pass
-
 
 class Alien():
 
@@ -123,7 +120,6 @@ class Alien():
         y = self.y + self.h
         Alien.bullets.append(Alien_Bullet(x,y,self.gameDisplay)) 
 
-
 class None_Alien(Alien):
 
     def __init__(self):
@@ -146,7 +142,6 @@ class None_Alien(Alien):
 
     def fire_bullet(self):
         pass
-
 
 class Defender():
 
@@ -202,6 +197,9 @@ class Game:
     save_memory_slot = pygame.USEREVENT + 7
     NONE_ALIEN = None_Alien()
     NONE_DEFENDER_BULLET = None_Defender_Bullet()
+
+    font = None
+
     clock = pygame.time.Clock()
 
     def listReplace(lst,old,new):
@@ -237,6 +235,7 @@ class Game:
         self.training = {-1:[],
                           1:[],
                           3:[]}
+        self.font = pygame.font.SysFont("comicsansms", 20)
 
     def soft_reset(self):
         self.player.x = Game.display_width // 2
@@ -262,8 +261,6 @@ class Game:
         self.defender.draw()
         for alien in self.armada: alien.draw()
 
-
-
     def playGame(self):
         pygame.time.set_timer(Game.alien_move_side,1000)
         pygame.time.set_timer(Game.alien_move_down,5000)
@@ -273,6 +270,7 @@ class Game:
         pygame.time.set_timer(Game.player_move,60)
         pygame.time.set_timer(Game.save_memory_slot,randint(0,30))
         while not self.gameExit:
+            # game events
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -321,7 +319,11 @@ class Game:
                     self.memory[self.memoryCounter] = pygame.surfarray.array2d(self.gameDisplay)
                     self.memoryCounter = (self.memoryCounter + 1) % 4
 
-            self.gameDisplay.fill(Game.black) 
+            # displaying score
+            text = self.font.render("Score: " + str(self.gameScore), True, Game.white)
+            self.gameDisplay.fill(Game.black)
+            self.gameDisplay.blit(text, ((self.display_width - text.get_width()) // 2, (self.display_height - (text.get_height())) // 70))
+
             self.defender.draw()
             for bullet in self.defender.bullets: bullet.tick()
             for bullet in Alien.bullets: bullet.tick()
@@ -375,6 +377,9 @@ class Game:
             Game.clock.tick(30)
 
 
+    def endscreen(self):
+        '''function to define the end screen'''
+        pass
 
 if __name__ == "__main__":
     game = Game(RandomPlayer())
