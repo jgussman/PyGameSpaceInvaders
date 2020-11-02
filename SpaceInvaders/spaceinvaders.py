@@ -1,183 +1,14 @@
+from ships import (Alien,None_Alien,
+                                 Defender,Bullet,None_Defender_Bullet)
+from Knuckle import RandomPlayer,Player
 import pygame
 from pygame.locals import *
 from random import randint
-from Knuckle import RandomPlayer,Player
-from PIL import Image
-from pathlib import Path
+import numpy as np
 
 
-class Bullet():
 
-    color = (147,112,219)
-    BulletSize = (2,5)
 
-    def __init__(self,x,y,display):
-        h,w = Bullet.BulletSize
-        self.h = h
-        self.w = w
-        self.x = x
-        self.y = y
-        self.gameDisplay = display
-        self.rect = pygame.draw.rect(self.gameDisplay,Bullet.color,
-                                    [x,y,h,w])
-    
-    def update(self):
-        self.y -= 5
-        self.rect.move_ip(self.x,self.y)
-
-    def draw(self):
-        pygame.draw.rect(self.gameDisplay,Bullet.color,
-                            [self.x,self.y,
-                             self.h,self.w])
-
-    def tick(self):
-        self.update()
-        self.draw()
-
-class Alien_Bullet(Bullet):
-
-    color = (0,255,255)
-
-    def __init__(self,x,y,display):
-        h,w = Bullet.BulletSize
-        self.h = h
-        self.w = w
-        self.x = x
-        self.y = y
-        self.gameDisplay = display
-        self.rect = pygame.draw.rect(self.gameDisplay,Alien_Bullet.color,
-                                    [x,y,h,w])
-    
-    def update(self):
-        self.y += 5
-        self.rect.move_ip(self.x,self.y)
-
-    def draw(self):
-        pygame.draw.rect(self.gameDisplay,Alien_Bullet.color,
-                            [self.x,self.y,
-                            self.h,self.w])
-
-    def tick(self):
-        self.update()
-        self.draw()
-
-class None_Defender_Bullet(Bullet):
-
-    def __init__(self):
-        self.x = 0
-        self.y = 0
-    
-    def update(self):
-        pass
-
-    def tick(self):
-        pass
-
-    def draw(self):
-        pass
-
-class Alien():
-
-    bullets = []
-    xvelocity = 5
-    yvelocity = 10
-    AlienSize = (10,10)
-    white = (255,255,255)
-
-    def __init__(self,x,y,group,display):
-        h,w = Alien.AlienSize
-        self.h = h
-        self.w = w
-        self.x = x
-        self.y = y
-        self.group = group
-        self.gameDisplay = display
-        self.rect = pygame.draw.rect(self.gameDisplay,Alien.white,
-                                     [x,y,h,w])
-        self.direction = 0
-    
-    def draw(self):
-        pygame.draw.rect(self.gameDisplay,Alien.white,
-                         [self.x,self.y,self.h,self.w])
-        for bullet in Alien.bullets: bullet.draw()
-
-    def move_side(self):
-        if self.direction < 5:
-            self.x -= Alien.xvelocity
-        else:
-            self.x += Alien.xvelocity
-        self.direction = (self.direction + 1) % 10
-
-    def move_down(self):
-        self.y += Alien.yvelocity
-
-    def increase_velocity():
-        Alien.xvelocity += 1
-        Alien.yvelocity += 2
-
-    def fire_bullet(self):
-        x = self.x + self.w//2
-        y = self.y + self.h
-        Alien.bullets.append(Alien_Bullet(x,y,self.gameDisplay)) 
-
-class None_Alien(Alien):
-
-    def __init__(self):
-        self.x = 0
-        self.y = 0
-        self.h = 0
-        self.w = 0
-
-    def draw(self):
-        pass
-
-    def move_side(self):
-        pass
-
-    def move_down(self):
-        pass
-
-    def increase_velocity(self):
-        pass
-
-    def fire_bullet(self):
-        pass
-
-class Defender():
-
-    DefenderSize = (20,20)
-    BulletSize = (2,5)
-    red = (255,0,0)
-
-    def __init__(self,display,display_width,display_height):
-        h,w = Defender.DefenderSize
-        bullet_h,bullet_w = Defender.BulletSize
-        self.h = h
-        self.w = w
-        self.x = display_width * .5
-        self.y = display_height * .95
-        self.gameDisplay = display
-        self.rect = pygame.draw.rect(display,Defender.red,
-                                    [self.x,self.y,h,w])
-        self.bullets = []
-        self.loaded = False
-
-    def move_left(self):
-        self.x -= 2
-
-    def move_right(self):
-        self.x += 2
-
-    def fire_bullet(self):
-        if self.loaded:
-            midShip = self.x + self.w//2
-            self.bullets.append(Bullet(midShip,self.y,self.gameDisplay))
-            self.loaded = False
-    
-    def draw(self):
-        pygame.draw.rect(self.gameDisplay,Defender.red,
-                         [self.x,self.y,self.h,self.w])
-        for bullet in self.bullets: bullet.tick()
 
 class Game:
     #Class variables that are consistent within all instances of games
@@ -236,6 +67,14 @@ class Game:
                           1:[],
                           3:[]}
         self.font = pygame.font.SysFont("comicsansms", 20)
+        self.nMemoryStored = 0
+
+    def storeMemory(self,key):
+        self.gameScore -= key
+        memKey = self.memoryCounter
+        lastState = self.memory[memKey:] + self.memory[:memKey]
+        self.training[key].append(lastState)
+        self.nMemoryStored += 1
 
     def soft_reset(self):
         self.player.x = Game.display_width // 2
@@ -320,7 +159,7 @@ class Game:
                     self.memoryCounter = (self.memoryCounter + 1) % 4
 
             # displaying score
-            text = self.font.render("Score: " + str(self.gameScore), True, Game.white)
+            text = self.font.render(f"Score: {self.gameScore}",True,Game.white)
             self.gameDisplay.fill(Game.black)
             self.gameDisplay.blit(text, ((self.display_width - text.get_width()) // 2, (self.display_height - (text.get_height())) // 70))
 
@@ -331,8 +170,8 @@ class Game:
             # Colisions
             for bullet in self.defender.bullets:
                 if bullet.y < 0:
-                    self.gameScore -= 1
-                    self.training[-1].append(self.memory)
+                    self.defender.bullets.remove(bullet)
+                    self.storeMemory(-1)
                 for alien in self.armada:
                     if (bullet.x in range(alien.x,alien.x+alien.w) and
                         bullet.y in range(alien.y,alien.y+alien.h)):
@@ -343,7 +182,7 @@ class Game:
                         #REWARD
                         self.gameScore += 3 * (self.level)
                         self.kills += 1
-                        self.training[3].append(self.memory)
+                        self.storeMemory(3)
                     if alien.y >= self.defender.y:
                         self.gameExit = True
 
@@ -351,7 +190,7 @@ class Game:
                 if bullet.y > Game.display_height:
                     Alien.bullets.remove(bullet)
                     self.gameScore += 1 * (self.level)
-                    self.training[1].append(self.memory)
+                    self.storeMemory(1)
                 if (bullet.x in range(int(self.defender.x),int(self.defender.x+self.defender.w)+1) and
                     bullet.y in range(int(self.defender.y),int(self.defender.y+self.defender.h)+1)):
                     self.lives -= 1
@@ -363,14 +202,15 @@ class Game:
             if self.kills == Game.nAliens:
                 self.hard_reset()
                 pygame.time.wait(1000)
-            if len(self.training) == 50:
-                counter = {-1:0,0:0,3:0}
-                for index,point in enumerate(self.training):
-                    imgList = [Image.fromarray(point[1][i]) for i in range(4)]
-                    for img in imgList:
-                        reward = point[0]
-                        img.save(f"Reward{reward}/{counter[reward]}.png")
-                        counter[reward] += 1
+            print(self.nMemoryStored)
+            if self.nMemoryStored == 50:
+                counter = 0
+                with open("training.csv",'w') as data:
+                    for key in game.training:
+                        for lst2d in game.training[key]:
+                            np.savez(f"savedStates/{counter}",*lst2d)
+                            data.write(f"{key}, savedStates/{counter}.npz\n")
+                            counter += 1
                 self.gameExit = True
             self.memory = [None] * 4
             pygame.display.update()
@@ -384,10 +224,4 @@ class Game:
 if __name__ == "__main__":
     game = Game(RandomPlayer())
     game.playGame()
-    counter = {-1:0,1:0,3:0}
-    for key in game.training:
-        for lst2d in game.training[key]:
-            imgList = [Image.fromarray(array2d) for array2d in lst2d]
-            for img in imgList:
-                img.save(f"Reward{key}\\{counter[key]}.png")
-                counter[key] += 1
+
