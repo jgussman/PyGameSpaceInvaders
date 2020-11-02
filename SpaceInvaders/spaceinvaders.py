@@ -2,6 +2,8 @@ import pygame
 from pygame.locals import *
 from random import randint
 from Knuckle import RandomPlayer,Player
+from PIL import Image
+from pathlib import Path
 
 
 class Bullet():
@@ -197,6 +199,7 @@ class Game:
     increase_velocity = pygame.USEREVENT + 4
     alien_fire_bullet = pygame.USEREVENT + 5
     player_move = pygame.USEREVENT + 6
+    save_memory_slot = pygame.USEREVENT + 7
     NONE_ALIEN = None_Alien()
     NONE_DEFENDER_BULLET = None_Defender_Bullet()
     clock = pygame.time.Clock()
@@ -229,6 +232,11 @@ class Game:
         self.lives = lives
         self.level = level
         self.kills = 0
+        self.memory = [None] * 4
+        self.memoryCounter = 0
+        self.training = {-1:[],
+                          1:[],
+                          3:[]}
 
     def soft_reset(self):
         self.player.x = Game.display_width // 2
@@ -263,6 +271,7 @@ class Game:
         pygame.time.set_timer(Game.increase_velocity,10000)
         pygame.time.set_timer(Game.alien_fire_bullet,750)
         pygame.time.set_timer(Game.player_move,60)
+        pygame.time.set_timer(Game.save_memory_slot,randint(0,30))
         while not self.gameExit:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -308,14 +317,20 @@ class Game:
                     Alien.increase_velocity()
                 if event.type == Game.alien_fire_bullet:
                     self.armada[randint(0,len(self.armada)-1)].fire_bullet()
+                if event.type == Game.save_memory_slot:
+                    self.memory[self.memoryCounter] = pygame.surfarray.array2d(self.gameDisplay)
+                    self.memoryCounter = (self.memoryCounter + 1) % 4
 
             self.gameDisplay.fill(Game.black) 
             self.defender.draw()
             for bullet in self.defender.bullets: bullet.tick()
             for bullet in Alien.bullets: bullet.tick()
             for alien in self.armada: alien.draw()
-            # Collisions
+            # Colisions
             for bullet in self.defender.bullets:
+                if bullet.y < 0:
+                    self.gameScore -= 1
+                    self.training[-1].append(self.memory)
                 for alien in self.armada:
                     if (bullet.x in range(alien.x,alien.x+alien.w) and
                         bullet.y in range(alien.y,alien.y+alien.h)):
@@ -323,12 +338,18 @@ class Game:
                         Game.listReplace(self.armada,
                                     alien,
                                     Game.NONE_ALIEN)
+                        #REWARD
                         self.gameScore += 3 * (self.level)
                         self.kills += 1
+                        self.training[3].append(self.memory)
+                    if alien.y >= self.defender.y:
+                        self.gameExit = True
+
             for bullet in Alien.bullets:
                 if bullet.y > Game.display_height:
                     Alien.bullets.remove(bullet)
                     self.gameScore += 1 * (self.level)
+                    self.training[1].append(self.memory)
                 if (bullet.x in range(int(self.defender.x),int(self.defender.x+self.defender.w)+1) and
                     bullet.y in range(int(self.defender.y),int(self.defender.y+self.defender.h)+1)):
                     self.lives -= 1
@@ -337,18 +358,31 @@ class Game:
                     self.soft_reset()
                     pygame.time.wait(1000)
                     break
-            for alien in self.armada:
-                if alien.y >= self.defender.y:
-                    self.gameExit = True
             if self.kills == Game.nAliens:
                 self.hard_reset()
                 pygame.time.wait(1000)
+            if len(self.training) == 50:
+                counter = {-1:0,0:0,3:0}
+                for index,point in enumerate(self.training):
+                    imgList = [Image.fromarray(point[1][i]) for i in range(4)]
+                    for img in imgList:
+                        reward = point[0]
+                        img.save(f"Reward{reward}/{counter[reward]}.png")
+                        counter[reward] += 1
+                self.gameExit = True
+            self.memory = [None] * 4
             pygame.display.update()
-
-            Game.clock.tick(60)
+            Game.clock.tick(30)
 
 
 
 if __name__ == "__main__":
     game = Game(RandomPlayer())
     game.playGame()
+    counter = {-1:0,1:0,3:0}
+    for key in game.training:
+        for lst2d in game.training[key]:
+            imgList = [Image.fromarray(array2d) for array2d in lst2d]
+            for img in imgList:
+                img.save(f"Reward{key}\\{counter[key]}.png")
+                counter[key] += 1

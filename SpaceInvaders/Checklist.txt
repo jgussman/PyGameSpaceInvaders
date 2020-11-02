@@ -1,7 +1,7 @@
 TO-DO
 -------
-1. Make function game_loop in spaceinvaders.py into a class
+1. Make function game_loop in spaceinvaders.py into a class DONEZO
 2. game_loop needs to have a method to pull the score & game state 
     - Game state should be one of two things:
         1) easy: returns a dictionary of the current positions of every object 
-        2) difficult but less pain in the ass in the future: returns the current frame 
+        2) difficult but less pain in the ass in the future: returns the current frame DONEZO
