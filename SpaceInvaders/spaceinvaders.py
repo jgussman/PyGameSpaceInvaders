@@ -181,7 +181,6 @@ class Game:
             if self.kills == Game.nAliens:
                 self.hard_reset()
                 pygame.time.wait(1000)
-            print(self.nMemoryStored)
             if self.nMemoryStored == 50:
                 counter = 0
                 with open("training.csv",'w') as data:
