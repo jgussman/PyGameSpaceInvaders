@@ -38,7 +38,7 @@ class QLearningPlayer(Player):
         '''
         Top-left is (0,0)
         1. Need to gray scale the frame if it is not already 
-        2. Need to remove the score from the scree 
+        2. Need to remove the score from the scree: DONEZO
         3. Need to flatten the frame down to a 1D array 
         '''
 

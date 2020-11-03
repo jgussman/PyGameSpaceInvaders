@@ -130,7 +130,7 @@ class Game:
                 if event.type == Game.alien_fire_bullet:
                     self.armada[randint(0,len(self.armada)-1)].fire_bullet()
                 if event.type == Game.save_memory_slot:
-                    self.memory[self.memoryCounter] = pygame.surfarray.array2d(self.gameDisplay)
+                    self.memory[self.memoryCounter] = pygame.surfarray.array3d(self.gameDisplay)
                     self.memoryCounter = (self.memoryCounter + 1) % 4
 
             # displaying score
