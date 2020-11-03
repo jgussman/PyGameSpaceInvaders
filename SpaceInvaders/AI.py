@@ -30,8 +30,28 @@ class QLearningPlayer(Player):
 
         stack_size = 4 #Change this number in order to stack a different number of frames 
 
-        stacked_frames 
+        stacked_frames = deque([np.zeros((NEEDS TO BE THE DIM OF 1D array, dtype = np.int) for i in range(stack_size))],maxlen=stack_size)
 
+
+    def preprocess(frame):
+        '''
+        Top-left is (0,0)
+        1. Need to gray scale the frame if it is not already 
+        2. Need to remove the score from the scree 
+        3. Need to flatten the frame down to a 1D array 
+        '''
+
+
+        flattened_frame = frame.flatten()
+        return flattened_frame
     
 
 
+    def stacked_frames(stacked_frames, state, is_new_episode): 
+        #Preprocess frame 
+        frame = preprocess_frame(state) 
+
+        if is_new_episode:
+            #Clear stacked_frames 
+            stacked_frames = deque([np.zeros((NEEDS TO BE THE DIM OF 1D array, dtype = np.int) for i in range(stack_size))],maxlen=stack_size)
+            
