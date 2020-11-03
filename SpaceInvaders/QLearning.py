@@ -4,9 +4,9 @@ import tensorflow as tf
 
 class QLearningNet:
     def __init__(self, state_size, action_size, learning_rate, name='QLearningNet'):
-        self.state_size = state_size
-        self.action_size = action_size
-        self.learning_rate = learning_rate
+        state_size = state_size
+        action_size = action_size
+        learning_rate = learning_rate
         
         with tf.variable_scope(name):
             # We create the placeholders
