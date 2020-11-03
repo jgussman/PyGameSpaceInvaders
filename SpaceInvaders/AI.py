@@ -8,6 +8,7 @@ from collections import deque
 
 class QLearningPlayer(Player):
     self.stacked_frames = deque([np.zeros((NEEDS TO BE THE DIM OF 1D array, dtype = np.int) for i in range(stack_size))],maxlen=stack_size)
+    self.stacked_state = 0  
     def __init__(self):
         """
         
@@ -27,7 +28,7 @@ class QLearningPlayer(Player):
 
         """
         possible_actions = [[1,0,0],[0,1,0],[0,0,1]] #One-Hot encoded 
-        # Dimensions 500, 700, 3 
+        # Dimensions 500, 668, 3 
 
         stack_size = 4 #Change this number in order to stack a different number of frames 
 
@@ -60,7 +61,13 @@ class QLearningPlayer(Player):
             for i in range(4):
                 self.stacked_frames.append(frame)
             
+            self.stacked_state = np.stack(stacked_frames,axis=2)
+            
         else: 
             #Automatically removes the oldest frame so don't remove anything
             #This is because the maxlen is set to 
             self.stacked_frames.append(frame)
+
+            #Build the stacked state 
+            stacked_state = np.stack(self.stacked_frames,axis = 2 )
+        return self.stacked_state, stacked_frames
