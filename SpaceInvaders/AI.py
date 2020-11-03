@@ -7,6 +7,7 @@ from collections import deque
 
 
 class QLearningPlayer(Player):
+    self.stacked_frames = deque([np.zeros((NEEDS TO BE THE DIM OF 1D array, dtype = np.int) for i in range(stack_size))],maxlen=stack_size)
     def __init__(self):
         """
         
@@ -26,14 +27,14 @@ class QLearningPlayer(Player):
 
         """
         possible_actions = [[1,0,0],[0,1,0],[0,0,1]] #One-Hot encoded 
-        # Dimensions 600, 500 
+        # Dimensions 500, 700, 3 
 
         stack_size = 4 #Change this number in order to stack a different number of frames 
 
-        stacked_frames = deque([np.zeros((NEEDS TO BE THE DIM OF 1D array, dtype = np.int) for i in range(stack_size))],maxlen=stack_size)
+        self.stacked_frames = deque([np.zeros((NEEDS TO BE THE DIM OF 1D array, dtype = np.int) for i in range(stack_size))],maxlen=stack_size)
 
 
-    def preprocess(frame):
+    def preprocess(self,frame):
         '''
         Top-left is (0,0)
         1. Need to gray scale the frame if it is not already 
@@ -47,11 +48,19 @@ class QLearningPlayer(Player):
     
 
 
-    def stacked_frames(stacked_frames, state, is_new_episode): 
+    def stacked_frames(self,stacked_frames, state, is_new_episode): 
         #Preprocess frame 
         frame = preprocess_frame(state) 
 
         if is_new_episode:
             #Clear stacked_frames 
-            stacked_frames = deque([np.zeros((NEEDS TO BE THE DIM OF 1D array, dtype = np.int) for i in range(stack_size))],maxlen=stack_size)
+            self.stacked_frames = deque([np.zeros((NEEDS TO BE THE DIM OF 1D array, dtype = np.int) for i in range(stack_size))],maxlen=stack_size)
+
+            #Add 4 new frames 
+            for i in range(4):
+                self.stacked_frames.append(frame)
             
+        else: 
+            #Automatically removes the oldest frame so don't remove anything
+            #This is because the maxlen is set to 
+            self.stacked_frames.append(frame)
