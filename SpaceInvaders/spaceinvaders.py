@@ -1,11 +1,13 @@
 from ships import (Alien,None_Alien,
-                                 Defender,Bullet,None_Defender_Bullet)
+                    Defender,Bullet,None_Defender_Bullet)
 from Knuckle import RandomPlayer,Player
 import pygame
 from pygame.locals import *
 from random import randint
 import numpy as np
 from PIL import Image
+
+
 class Game:
     #Class variables that are consistent within all instances of games
     display_width = 500
