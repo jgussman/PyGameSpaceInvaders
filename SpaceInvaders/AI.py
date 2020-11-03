@@ -28,12 +28,9 @@ class QLearningPlayer(Player):
         possible_actions = [[1,0,0],[0,1,0],[0,0,1]] #One-Hot encoded 
         # Dimensions 600, 500 
 
+        stack_size = 4 #Change this number in order to stack a different number of frames 
 
-        #***Top left is (0,0)
-
-        #preprocess
-        #  
-
+        stacked_frames 
 
     
 
