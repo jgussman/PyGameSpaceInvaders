@@ -6,8 +6,7 @@ from pygame.locals import *
 from random import randint
 import numpy as np
 from PIL import Image
-
-
+from AI import QLearningPlayer
 class Game:
     #Class variables that are consistent within all instances of games
     display_width = 500
@@ -112,7 +111,8 @@ class Game:
                     pygame.quit()
                     quit()
                 if event.type == Game.player_move:
-                    move = self.player.feedForward([])
+                    curFrame = pygame.surfarray.array3d(self.gameDisplay)
+                    move = self.player.feedForward(curFrame)
                     self.previousAction = move
                     if move == 1:
                         self.defender.move_left()
@@ -200,6 +200,6 @@ class Game:
         pass
 
 if __name__ == "__main__":
-    game = Game(RandomPlayer())
+    game = Game(QLearningPlayer())
     game.playGame()
 
