@@ -6,18 +6,14 @@ from pygame.locals import *
 from random import randint
 import numpy as np
 
-
-
-
-
 class Game:
     #Class variables that are consistent within all instances of games
     display_width = 500
-    display_height = 600
+    display_height = 700
     black = (0,0,0)
     white = (255,255,255)
     columns = range(88,413,27)
-    rows = range(20,126,21)
+    rows = range(40,146,21)
     nAliens = 72
     alien_move_side = pygame.USEREVENT + 1
     alien_move_down = pygame.USEREVENT + 2
