@@ -5,7 +5,7 @@ import pygame
 from pygame.locals import *
 from random import randint
 import numpy as np
-
+from PIL import Image
 class Game:
     #Class variables that are consistent within all instances of games
     display_width = 500
@@ -177,18 +177,18 @@ class Game:
             if self.kills == Game.nAliens:
                 self.hard_reset()
                 pygame.time.wait(1000)
-            if self.nMemoryStored == 50:
+            if self.nMemoryStored == 64:
                 counter = 0
-                with open("training.csv",'w') as data:
+                with open("SpaceInvaders/training.csv",'w') as data:
                     data.write("Reward,Action,state\n")
                     for point in self.training:
                         reward,action,lst2d = point
-                        np.savez(f"savedStates/{counter}",*lst2d)
-                        data.write(f"{reward}, {action}, savedStates/{counter}.npz")
+                        lst2d = [np.delete(i,slice(0,32),1) for i in lst2d]
+                        np.savez(f"SpaceInvaders/savedStates/{counter}",*lst2d)
+                        data.write(f"{reward}, {action}, SpaceInvaders/savedStates/{counter}.npz")
                         data.write("\n")
                         counter += 1
                 self.gameExit = True
-            self.memory = [None] * 4
             pygame.display.update()
             Game.clock.tick(30)
 
