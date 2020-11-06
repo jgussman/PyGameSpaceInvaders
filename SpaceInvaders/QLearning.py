@@ -1,13 +1,16 @@
-import tensorflow as tf 
+import tensorflow.compat.v1 as tf
 
 
 
 class QLearningNet:
     def __init__(self, state_size, action_size, learning_rate, name='QLearningNet'):
-        state_size = state_size
-        action_size = action_size
-        learning_rate = learning_rate
-        
+        self.state_size = state_size
+        self.action_size = action_size
+        self.learning_rate = learning_rate
+
+        tf.compat.v1.disable_eager_execution()
+        tf.disable_v2_behavior()
+
         with tf.variable_scope(name):
             # We create the placeholders
             # *state_size means that we take each elements of state_size in tuple hence is like if we wrote
@@ -29,7 +32,6 @@ class QLearningNet:
                                          kernel_size = [8,8],
                                          strides = [4,4],
                                          padding = "VALID",
-                                          kernel_initializer=tf.contrib.layers.xavier_initializer_conv2d(),
                                          name = "conv1")
             
             self.conv1_out = tf.nn.elu(self.conv1, name="conv1_out")
@@ -44,7 +46,6 @@ class QLearningNet:
                                  kernel_size = [4,4],
                                  strides = [2,2],
                                  padding = "VALID",
-                                kernel_initializer=tf.contrib.layers.xavier_initializer_conv2d(),
                                  name = "conv2")
 
             self.conv2_out = tf.nn.elu(self.conv2, name="conv2_out")            
@@ -59,21 +60,17 @@ class QLearningNet:
                                  kernel_size = [3,3],
                                  strides = [2,2],
                                  padding = "VALID",
-                                kernel_initializer=tf.contrib.layers.xavier_initializer_conv2d(),
                                  name = "conv3")
-
             self.conv3_out = tf.nn.elu(self.conv3, name="conv3_out")
             
-            self.flatten = tf.contrib.layers.flatten(self.conv3_out)
+            #self.flatten = tf.contrib.layers.flatten(self.conv3_out)
             
-            self.fc = tf.layers.dense(inputs = self.flatten,
+            self.fc = tf.layers.dense(inputs = self.conv3_out,
                                   units = 512,
                                   activation = tf.nn.elu,
-                                       kernel_initializer=tf.contrib.layers.xavier_initializer(),
                                 name="fc1")
             
             self.output = tf.layers.dense(inputs = self.fc, 
-                                           kernel_initializer=tf.contrib.layers.xavier_initializer(),
                                           units = self.action_size, 
                                         activation=None)
             

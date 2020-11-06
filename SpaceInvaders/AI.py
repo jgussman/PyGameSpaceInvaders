@@ -3,9 +3,10 @@ from skimage import transform
 from skimage.color import rgb2gray 
 from collections import deque 
 import tensorflow as tf 
-import QLearning
-import Memory
+from QLearning import QLearningNet
+from Memory import Memory
 import numpy as np 
+from tensorflow.python.framework import ops
 
 
 class QLearningPlayer(Player):
@@ -30,17 +31,17 @@ class QLearningPlayer(Player):
             3.3: 
 
         """
-        print("INPUT VECTORR HEERE",inputVector.shape)
+        
         possible_actions = [[1,0,0],[0,1,0],[0,0,1]] #One-Hot encoded 
-        # Dimensions 500, 668, 3 
+        # Dimensions (500, 700, 3) 
 
         stack_size = 4 #Change this number in order to stack a different number of frames 
 
-        #self.stacked_frames = deque([np.zeros((NEEDS TO BE THE DIM OF 1D array, dtype = np.int) for i in range(stack_size))],maxlen=stack_size)
+        stacked_frames  =  deque([np.zeros((500,700), dtype=np.int) for i in range(stack_size)], maxlen=4)
 
 
         ### MODEL HYPERPARAMETERS
-        state_size = [110, 84, 4]      # Our input is a stack of 4 frames hence 110x84x4 (Width, height, channels) 
+        state_size = [500, 700, stack_size]      # Our input is a stack of 4 frames hence 110x84x4 (Width, height, channels) 
         action_size = 3
         learning_rate =  0.00025      # Alpha (aka learning rate)
 
@@ -65,25 +66,21 @@ class QLearningPlayer(Player):
         stack_size = 4                 # Number of frames stacked
 
         ### MODIFY THIS TO FALSE IF YOU JUST WANT TO SEE THE TRAINED AGENT
-        training = False
+        training = True
 
         ## TURN THIS TO TRUE IF YOU WANT TO RENDER THE ENVIRONMENT
         episode_render = False
 
+
+
         # Reset The Graph 
-        tf.reset_default_graph()
+        ops.reset_default_graph()
 
         # Instantiate the Deep Learning 
         network = QLearningNet(state_size,action_size,learning_rate)
 
         # Setup TensorBoard Writer
-        writer = tf.summary.FileWriter("/tensorboard/dqn/1")
-
-        ## Losses
-        tf.summary.scalar("Loss", DQNetwork.loss)
-
-        write_op = tf.summary.merge_all()
-
+        writer = tf.summary.create_file_writer("/tensorboard/dqn/1")
 
         # Instantiate memory
         memory = Memory(max_size = memory_size)
@@ -91,6 +88,7 @@ class QLearningPlayer(Player):
             # If it's the first step
             if i == 0:
                 state = env.reset()
+
                 
                 state, stacked_frames = stack_frames(stacked_frames, state, True)
                 
@@ -125,6 +123,18 @@ class QLearningPlayer(Player):
                 
                 # Our new state is now the next_state
                 state = next_state
+
+        # Setup TensorBoard Writer
+        writer = tf.summary.create_file_writer("/tensorboard/dqn/1")
+
+        ## Losses
+        tf.summary.scalar("Loss", DQNetwork.loss)
+
+        write_op = tf.summary.merge_all()
+
+
+
+
         # Saver will help us to save our model
         saver = tf.train.Saver()
 
@@ -257,6 +267,8 @@ class QLearningPlayer(Player):
         
         normalized = frame/255.0
         flattened_frame = normalized.flatten()
+        print("FLATTENED FRAME SHAPE",flattened_frame.shape)
+        print("FLATTENED FRAME SHAPE",flattened_frame.shape)
         return flattened_frame
     
 
@@ -267,7 +279,7 @@ class QLearningPlayer(Player):
 
         if is_new_episode:
             #Clear stacked_frames 
-            #self.stacked_frames = deque([np.zeros((NEEDS TO BE THE DIM OF 1D array, dtype = np.int) for i in range(stack_size))],maxlen=stack_size)
+            self.stacked_frames  =  deque([np.zeros((500,700), dtype=np.int) for i in range(stack_size)], maxlen=4)
 
             #Add 4 new frames 
             for i in range(4):
