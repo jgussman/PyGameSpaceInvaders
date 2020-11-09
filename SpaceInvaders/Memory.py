@@ -1,5 +1,5 @@
 from collections import deque 
-class Memory():
+class Memory:
     def __init__(self, max_size):
         self.buffer = deque(maxlen = max_size)
     

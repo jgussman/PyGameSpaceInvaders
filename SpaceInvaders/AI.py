@@ -256,6 +256,7 @@ class QLearningPlayer(Player):
                     if episode % 5 == 0:
                         save_path = saver.save(sess, "./models/model.ckpt")
                         print("Model Saved")
+    
 
 
     def preprocess(self,frame):
@@ -273,13 +274,13 @@ class QLearningPlayer(Player):
     
 
 
-    def stacked_frames(self,stacked_frames, state, is_new_episode): 
+    def stack_frames(stacked_frames, state, is_new_episode): 
         #Preprocess frame 
         frame = preprocess_frame(state) 
 
         if is_new_episode:
             #Clear stacked_frames 
-            self.stacked_frames  =  deque([np.zeros((500,700), dtype=np.int) for i in range(stack_size)], maxlen=4)
+            stacked_frames  =  deque([np.zeros((500,700), dtype=np.int) for i in range(stack_size)], maxlen=4)
 
             #Add 4 new frames 
             for i in range(4):
@@ -296,14 +297,6 @@ class QLearningPlayer(Player):
             stacked_state = np.stack(self.stacked_frames,axis = 2 )
         return self.stacked_state, stacked_frames
     
-
-
-
-
-
-
-
-
 
 
 def predict_action(explore_start, explore_stop, decay_rate, decay_step, state, actions):
