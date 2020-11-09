@@ -95,8 +95,8 @@ for i in range(pretrain_length):
         memory.add((state, action, reward, next_state, done))
                 
         # Start a new episode
-        state = env.reset()
-                
+        state = Game(QLearningPlayer)
+
         # Stack the frames
         state, stacked_frames = stack_frames(stacked_frames, state, True)
                 
@@ -134,7 +134,7 @@ if training == True:
             episode_rewards = []
                     
             # Make a new episode and observe the first state
-            state = env.reset()
+            state = Game(QLearningPlayer)
                     
             # Remember that stack frame function also call our preprocess function.
             state, stacked_frames = stack_frames(stacked_frames, state, True)
@@ -151,8 +151,8 @@ if training == True:
                 #Perform the action and get the next_state, reward, and done information
                 next_state, reward, done, _ = env.step(action)
                         
-                if episode_render:
-                    env.render()
+                #if episode_render:
+                #    env.render()
                         
                 # Add the reward to total reward
                 episode_rewards.append(reward)
