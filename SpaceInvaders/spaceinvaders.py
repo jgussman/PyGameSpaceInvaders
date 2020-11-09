@@ -1,12 +1,21 @@
+from SpaceInvaders.qLearningHelpers import preprocess
 from ships import (Alien,None_Alien,
                     Defender,Bullet,None_Defender_Bullet)
-from Knuckle import RandomPlayer,Player
 import pygame
 from pygame.locals import *
 from random import randint
 import numpy as np
-from PIL import Image
 from AI import QLearningPlayer
+import tensorflow as tf
+from collections import deque
+import random
+import warnings
+from QLearning import QLearningNet
+from tensorflow.python.framework import ops
+from qLearningHelpers import *
+warnings.filterwarnings('ignore')
+
+
 class Game:
     #Class variables that are consistent within all instances of games
     display_width = 500
@@ -25,7 +34,7 @@ class Game:
     save_memory_slot = pygame.USEREVENT + 7
     NONE_ALIEN = None_Alien()
     NONE_DEFENDER_BULLET = None_Defender_Bullet()
-
+    
     font = None
 
     clock = pygame.time.Clock()
@@ -69,6 +78,8 @@ class Game:
         self.gameScore += key
         memKey = self.memoryCounter
         lastState = self.memory[memKey:] + self.memory[:memKey]
+        lastState = preprocess(lastState)
+        lastState = np.stack(lastState,axis = 2)
         self.training.append((key,self.previousAction,lastState))
         self.nMemoryStored += 1
 
@@ -95,6 +106,104 @@ class Game:
         self.gameDisplay.fill(Game.black)
         self.defender.draw()
         for alien in self.armada: alien.draw()
+
+    def playGame(self):
+        pygame.time.set_timer(Game.alien_move_side,1000)
+        pygame.time.set_timer(Game.alien_move_down,5000)
+        pygame.time.set_timer(Game.defender_reload,1000)
+        pygame.time.set_timer(Game.increase_velocity,10000)
+        pygame.time.set_timer(Game.alien_fire_bullet,750)
+        pygame.time.set_timer(Game.player_move,60)
+        pygame.time.set_timer(Game.save_memory_slot,randint(0,30))
+        while not self.gameExit:
+            # game events
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
+                if event.type == Game.player_move:
+                    # NOTE need to stack on feed forward
+                    # So keep previous 3 frames as well
+                    curFrame = pygame.surfarray.array3d(self.gameDisplay)
+                    move = self.player.feedForward(curFrame)
+                    self.previousAction = move
+                    if move == 1:
+                        self.defender.move_left()
+                    elif move == 2:
+                        self.defender.move_right()
+                    else:
+                        self.defender.fire_bullet()
+                if event.type == Game.alien_move_side:
+                    for alien in self.armada: alien.move_side()
+                if event.type == Game.alien_move_down:
+                    for alien in self.armada: alien.move_down()
+                if event.type == Game.defender_reload:
+                    self.defender.loaded = True
+                    pygame.time.set_timer(Game.defender_reload,1000)
+                if event.type == Game.increase_velocity:
+                    Alien.increase_velocity()
+                if event.type == Game.alien_fire_bullet:
+                    self.armada[randint(0,len(self.armada)-1)].fire_bullet()
+                if event.type == Game.save_memory_slot:
+                    self.memory[self.memoryCounter] = pygame.surfarray.array3d(self.gameDisplay)
+                    self.memoryCounter = (self.memoryCounter + 1) % 4
+
+            # displaying score
+            text = self.font.render(f"Score: {self.gameScore}",True,Game.white)
+            self.gameDisplay.fill(Game.black)
+            self.gameDisplay.blit(text, ((self.display_width - text.get_width()) // 2, (self.display_height - (text.get_height())) // 70))
+
+            self.defender.draw()
+            for bullet in self.defender.bullets: bullet.tick()
+            for bullet in Alien.bullets: bullet.tick()
+            for alien in self.armada: alien.draw()
+            # Colisions
+            for bullet in self.defender.bullets:
+                if bullet.y < 0:
+                    self.defender.bullets.remove(bullet)
+                    self.storeMemory(-1)
+                for alien in self.armada:
+                    if (bullet.x in range(alien.x,alien.x+alien.w) and
+                        bullet.y in range(alien.y,alien.y+alien.h)):
+                        self.defender.bullets.remove(bullet)
+                        Game.listReplace(self.armada,
+                                    alien,
+                                    Game.NONE_ALIEN)
+                        #REWARD
+                        self.gameScore += 3 * (self.level)
+                        self.kills += 1
+                        self.storeMemory(3)
+                    if alien.y >= self.defender.y:
+                        self.gameExit = True
+
+            for bullet in Alien.bullets:
+                if bullet.y > Game.display_height:
+                    Alien.bullets.remove(bullet)
+                    self.gameScore += 1 * (self.level)
+                    self.storeMemory(1)
+                if (bullet.x in range(int(self.defender.x),int(self.defender.x+self.defender.w)+1) and
+                    bullet.y in range(int(self.defender.y),int(self.defender.y+self.defender.h)+1)):
+                    self.lives -= 1
+                    if self.lives == 0:
+                        self.gameExit = True
+                    self.soft_reset()
+                    pygame.time.wait(1000)
+                    break
+            if self.kills == Game.nAliens:
+                self.hard_reset()
+                pygame.time.wait(1000)
+            pygame.display.update()
+            Game.clock.tick(30)
+
+
+    def endscreen(self):
+        '''function to define the end screen'''
+        pass
+
+
+
+class GameTrainer(Game):
+
 
     def playGame(self):
         pygame.time.set_timer(Game.alien_move_side,1000)
@@ -179,27 +288,25 @@ class Game:
             if self.kills == Game.nAliens:
                 self.hard_reset()
                 pygame.time.wait(1000)
-            if self.nMemoryStored == 64:
-                counter = 0
-                with open("SpaceInvaders/training.csv",'w') as data:
-                    data.write("Reward,Action,state\n")
-                    for point in self.training:
-                        reward,action,lst2d = point
-                        lst2d = [np.delete(i,slice(0,32),1) for i in lst2d]
-                        np.savez(f"SpaceInvaders/savedStates/{counter}",*lst2d)
-                        data.write(f"{reward}, {action}, SpaceInvaders/savedStates/{counter}.npz")
-                        data.write("\n")
-                        counter += 1
-                self.gameExit = True
+            if self.nMemoryStored == batch_size:
+                self.player.train(self.training)
+                # Change to reset quickly at first 
+                # then let it play longer as it gets better
             pygame.display.update()
             Game.clock.tick(30)
 
-
-    def endscreen(self):
-        '''function to define the end screen'''
-        pass
-
 if __name__ == "__main__":
-    game = Game(QLearningPlayer())
-    game.playGame()
+    player = QLearningNet()
+    game = GameTrainer(player)
+    i = 0
+    while True: #Until I cancel it I forget how 
+        game.playGame()
+        game = GameTrainer(player)
+        if i == 100:
+            shouldContinue = input("Do you want to keep Training?\n")
+            if shouldContinue == "Y":
+                i = 0
+            else:
+                break
+    player.store_weights()
 

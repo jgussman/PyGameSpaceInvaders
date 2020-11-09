@@ -1,5 +1,3 @@
-import tensorflow.compat.v1 as tf
-
 
 
 class QLearningNet:
@@ -84,3 +82,44 @@ class QLearningNet:
             self.loss = tf.reduce_mean(tf.square(self.target_Q - self.Q))
             
             self.optimizer = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss)
+
+
+    def train(self,batch):
+      """
+      Takes in batch (64 length list with [(reward,action,state),...()])
+      returns VOID trains the model
+      """
+      with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
+
+        #init decay rate
+        decay_step = 0
+        for point in batch:
+          reward,action,stack_state = point
+
+          
+
+          # Feed forward in predict net
+
+
+          # Feed forward in target net
+          #this should just be self.target_Q. This is from above 
+
+
+          # add reward to target net values
+
+          # Find the loss 
+          # Loss = (Q_target - Predicted_Q)^2
+
+          # update weights in predict
+        
+
+        # Copy predict weights to target
+
+    def store_weights(self):
+      """
+      Stores the weights in some way to call again
+      """
+      
+
+        

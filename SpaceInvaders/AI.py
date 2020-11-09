@@ -1,15 +1,11 @@
-from Knuckle import Player
-from skimage import transform 
-from skimage.color import rgb2gray 
+
 from collections import deque 
-import tensorflow as tf 
 from QLearning import QLearningNet
-from Memory import Memory
 import numpy as np 
 from tensorflow.python.framework import ops
 
 
-class QLearningPlayer(Player):
+class QLearningPlayer():
     #self.stacked_frames = deque([np.zeros((NEEDS TO BE THE DIM OF 1D array, dtype = np.int) for i in range(stack_size))],maxlen=stack_size)
     stacked_frames = 1 # This is just a place holder 
     stacked_state = 0  
