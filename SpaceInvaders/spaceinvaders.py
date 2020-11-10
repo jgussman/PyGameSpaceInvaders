@@ -1,17 +1,17 @@
-from SpaceInvaders.qLearningHelpers import preprocess
+from logging import lastResort
 from ships import (Alien,None_Alien,
                     Defender,Bullet,None_Defender_Bullet)
 import pygame
 from pygame.locals import *
 from random import randint
 import numpy as np
-from AI import QLearningPlayer
-import tensorflow as tf
+# from AI import QLearningPlayer
+# import tensorflow as tf
 from collections import deque
 import random
 import warnings
 from QLearning import QLearningNet
-from tensorflow.python.framework import ops
+# from tensorflow.python.framework import ops
 from qLearningHelpers import *
 warnings.filterwarnings('ignore')
 
@@ -48,6 +48,9 @@ class Game:
             if item == old:
                 lst[index] = new
                 break
+    def grayScaleConvert(mem):
+        r, g, b = mem[:,:,0], mem[:,:,1], mem[:,:,2]
+        return 0.2989 * r + 0.5870 * g + 0.1140 * b
 
     def __init__(self,player,level = 1, score = 0,lives = 3):
         """
@@ -78,7 +81,8 @@ class Game:
         self.gameScore += key
         memKey = self.memoryCounter
         lastState = self.memory[memKey:] + self.memory[:memKey]
-        lastState = preprocess(lastState)
+        lastState = map(lambda x: x/255,lastState)
+        lastState = map(Game.grayScaleConvert,lastState)
         lastState = np.stack(lastState,axis = 2)
         self.training.append((key,self.previousAction,lastState))
         self.nMemoryStored += 1
@@ -122,10 +126,11 @@ class Game:
                     pygame.quit()
                     quit()
                 if event.type == Game.player_move:
-                    # NOTE need to stack on feed forward
-                    # So keep previous 3 frames as well
-                    curFrame = pygame.surfarray.array3d(self.gameDisplay)
-                    move = self.player.feedForward(curFrame)
+                    if any([i is None for i in self.memory]):
+                        break
+                    lastMemory = (self.memory[self.memoryCounter:] + 
+                                  self.memory[:self.memoryCounter])
+                    move = self.player.feedForward(lastMemory)
                     self.previousAction = move
                     if move == 1:
                         self.defender.move_left()
@@ -220,8 +225,15 @@ class GameTrainer(Game):
                     pygame.quit()
                     quit()
                 if event.type == Game.player_move:
-                    curFrame = pygame.surfarray.array3d(self.gameDisplay)
-                    move = self.player.feedForward(curFrame)
+                    if any([i is None for i in self.memory]):
+                        break
+                    lastMemory = (self.memory[self.memoryCounter:] + 
+                                  self.memory[:self.memoryCounter])
+                    lastMemory = map(lambda x: x/255,lastMemory)
+                    lastMemory = map(Game.grayScaleConvert,lastMemory)
+                    lastMemory = np.stack(lastMemory, axis = 2)
+                    lastMemory = np.reshape(lastMemory,(4,500,700,1))
+                    move = self.player.feedForward(lastMemory)
                     self.previousAction = move
                     if move == 1:
                         self.defender.move_left()
@@ -298,15 +310,9 @@ class GameTrainer(Game):
 if __name__ == "__main__":
     player = QLearningNet()
     game = GameTrainer(player)
-    i = 0
-    while True: #Until I cancel it I forget how 
+    i = 1000
+    for _ in range(i): #Until I cancel it I forget how 
         game.playGame()
         game = GameTrainer(player)
-        if i == 100:
-            shouldContinue = input("Do you want to keep Training?\n")
-            if shouldContinue == "Y":
-                i = 0
-            else:
-                break
     player.store_weights()
 
