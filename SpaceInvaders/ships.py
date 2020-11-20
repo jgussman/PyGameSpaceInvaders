@@ -3,7 +3,7 @@ import pygame
 class Bullet():
 
     color = (147,112,219)
-    BulletSize = (2,5)
+    BulletSize = (2,2)
 
     def __init__(self,x,y,display):
         h,w = Bullet.BulletSize
@@ -16,7 +16,7 @@ class Bullet():
                                     [x,y,h,w])
     
     def update(self):
-        self.y -= 5
+        self.y -= 4
         self.rect.move_ip(self.x,self.y)
 
     def draw(self):
@@ -73,9 +73,9 @@ class None_Defender_Bullet(Bullet):
 class Alien():
 
     bullets = []
-    xvelocity = 5
-    yvelocity = 10
-    AlienSize = (10,10)
+    xvelocity = 1
+    yvelocity = 2
+    AlienSize = (5,5)
     white = (255,255,255)
 
     def __init__(self,x,y,group,display):
@@ -139,8 +139,8 @@ class None_Alien(Alien):
 
 class Defender():
 
-    DefenderSize = (20,20)
-    BulletSize = (2,5)
+    DefenderSize = (4,4)
+    BulletSize = (1,2)
     red = (255,0,0)
 
     def __init__(self,display,display_width,display_height):
