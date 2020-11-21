@@ -457,22 +457,22 @@ if __name__ == "__main__":
     #                       randomActions = False)
     # game = SimpleGame(player)
     # game.playGame()
-
     # TO TRAIN THE MODEL FURTHER
-    player = QLearningNet(previousModel = False,
-                          randomActions = True)
-    game = SimpleGame(player)
-    for totalLoop in range(100):
-        n = 50
-        game.playGame(train = True)
-        for i in range(n): 
-            game.playGame(train = True)
-            if game.nMemoryStored < game.batch_size:
-                player.train(game.training,False)
-                print("training")
-            game.hard_reset()
-            print(f'new game {i} of {n}')
-        player.train(game.training,True)
-        player.store_weights(filepath = f"Models/results_{totalLoop}")
-        print(f"Target Update {totalLoop} of 100")
+    # for totalLoop in range(3,100):
+    #     player = QLearningNet(previousModel = True,
+    #                           randomActions = False,
+    #                           filepath = f"Models/results_{totalLoop-1}.h5")
+    #     game = SimpleGame(player,train = True)
+    #     n = 25
+    #     game.playGame()
+    #     for i in range(n): 
+    #         game.playGame()
+    #         if game.nMemoryStored < game.batch_size:
+    #             player.train(game.training,False)
+    #             print("training")
+    #         game.hard_reset()
+    #         print(f'new game {i} of {n}')
+    #     player.train(game.training,True)
+    #     player.store_weights(filepath = f"Models/results_{totalLoop}.h5")
+    #     print(f"Target Update {totalLoop} of 100")
 
