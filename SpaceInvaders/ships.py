@@ -1,6 +1,10 @@
 import pygame
 
 class Bullet():
+    """
+    Bullet class for defenders. Makes bullets for defenders 
+    also serves as superclass for alien bullets.
+    """
 
     color = (147,112,219)
     BulletSize = (2,2)
@@ -29,6 +33,10 @@ class Bullet():
         self.draw()
 
 class Alien_Bullet(Bullet):
+    """
+    Mostly the same as Bullet class but moves downwards as opposed to 
+    upwards
+    """
 
     color = (0,255,255)
 

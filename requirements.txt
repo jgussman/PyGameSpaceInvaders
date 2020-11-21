@@ -1,0 +1,6 @@
+### Requirements
+
+tensorflow
+keras
+numpy
+pygame

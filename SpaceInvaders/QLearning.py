@@ -4,7 +4,7 @@ from random import randint
 import os
 
 class QLearningNet:
-    def __init__(self, name='QLearningNet',previousModel = False,randomActions = False):
+    def __init__(self, name='QLearningNet',previousModel = False,randomActions = False,filepath = "spaceinvaders/models/model.h5"):
         self.state_size = [120,140,4]
         self.action_size = 3
         self.learning_rate = 0.000025
@@ -25,7 +25,7 @@ class QLearningNet:
           self.predict_model.compile(optimizer='adam',loss = 'mean_squared_error')
           self.target_model.compile(optimizer= 'adam')
         else:
-          self.predict_model = tf.keras.models.load_model("spaceinvaders/models/model.h5")
+          self.predict_model = tf.keras.models.load_model(filepath)
           self.target_model = tf.keras.models.clone_model(self.predict_model)
           self.target_model.compile(optimizer='adam')
         self.random_actions = randomActions
@@ -85,11 +85,11 @@ class QLearningNet:
         print('updates weights')
         self.target_model.set_weights(self.predict_model.get_weights())
 
-    def store_weights(self):
+    def store_weights(self,filepath = "spaceinvaders/models/model.h5"):
       """
       Stores the weights in some way to call again
       """
-      self.predict_model.save("spaceinvaders/models/model.h5")
+      self.predict_model.save(filepath)
       
 
 class RandomPlayer:

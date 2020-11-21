@@ -454,12 +454,17 @@ if __name__ == "__main__":
     player = QLearningNet(previousModel = True,
                           randomActions = False)
     game = SimpleGame(player)
+
+    ## TO SEE RESULTS
     game.playGame()
+
+    # TO TRAIN THE MODEL FURTHER
+
     # for totalLoop in range(100):
     #     n = 100
-    #     game.playGame()
+    #     game.playGame(train = True)s
     #     for i in range(n): #Until I cancel it I forget how 
-    #         game.playGame()
+    #         game.playGame(train = True))
     #         if game.nMemoryStored < game.batch_size:
     #             player.train(game.training,False)
     #             print("training")
