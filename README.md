@@ -25,6 +25,9 @@ This project was built using the following packages
 
 All these dependencies are in the requirements.txt file and can be installed with pip. Please note that running ``` pip -r requirements.txt ``` will install the latest versions of all packages. We are not liable for new versions of software breaking the code. If version errors emmerage please use the specified versions listed above as those are guranteed to work.  
 
+### Side note on Python versions:
+This was written in Python 3.8.0 but any version after 3.6 should be fine, although the dependency test has not been conducted so I can not make promises. The other requirement is that a 64 bit version of python should be used as 32 bits is not compatabile with Tensorflow.
+
 ## Performance and machine limitions
 
 The most expensive part of the program is fetching the pixel arrays from pygame. Currently the only option is to copy all the values into an array. This 120X100 array is then fed into the CNN which will produce the Q-values and give the appropiate move. This event occurs every second or so, which means the program can be quite hard on software. Some frame drops and stutter occurred on my laptop that has an Intel I5 processor and 8GB of RAM. However no stuttering occurred on an Intel I7 processor and 16 GB of RAM. If stuttering is occuring due to inadequate CPU power, consider using GPU Tensorflow if a GPU is available.
