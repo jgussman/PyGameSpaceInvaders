@@ -5,6 +5,7 @@ from pygame.locals import *
 from random import randint
 import numpy as np
 from QLearning import QLearningNet,RandomPlayer
+import time
 
 
 
@@ -388,7 +389,6 @@ class SimpleGame(Game):
         pygame.time.set_timer(Game.defender_reload,600)
         pygame.time.set_timer(Game.player_move,150)
         pygame.time.set_timer(Game.save_memory_slot,randint(0,30))
-        pygame.time.set_timer(SimpleGame.endGame,120000)
         self.frameAtFire = pygame.surfarray.array3d(self.gameDisplay)
         while not self.gameExit:
             # game events
@@ -444,9 +444,8 @@ class SimpleGame(Game):
                         #REWARD
                         self.kills += 1
                         self.simpleStore(3,self.frameAtFire)
-            # if self.kills == (Game.nAliens * .75) :
-            #     self.hard_reset()
-            #     pygame.time.wait(1000)
+            if self.kills == (Game.nAliens * .75) :
+                self.gameExit = True
             # if self.nMemoryStored == SimpleGame.batch_size and self.train:
             #     print("TRAINING")
             #     self.player.train(self.training,False)
@@ -461,11 +460,14 @@ if __name__ == "__main__":
     allModels = [f"Models/results_{i}.h5" for i in range(4)]
     allModels.append("Models/model.h5")
     for model in allModels:
+        begin = time.perf_counter_ns()
         player = QLearningNet(previousModel = True,
                               randomActions = False,
                               filepath = model)
         game = SimpleGame(player)
         game.playGame()
+        end = time.perf_counter_ns()
+        print(begin - end)
     ## TO SEE RESULTS
     # player = QLearningNet(previousModel = True,
     #                       randomActions = False)
