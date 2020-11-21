@@ -20,7 +20,7 @@ class Game:
     white = (255,255,255)
     columns = range(40,80,5)
     rows = range(8,30,3)
-    nAliens = 72
+    nAliens = len(range(8,30,3)) * len(range(40,80,5))
     alien_move_side = pygame.USEREVENT + 1
     alien_move_down = pygame.USEREVENT + 2
     defender_reload = pygame.USEREVENT + 3
@@ -231,6 +231,7 @@ class GameTrainer(Game):
     Sub Class of Original Space Invaders Game
     Used to train QLearner object
     """
+    batch_size = 64
 
     def playGame(self):
         pygame.time.set_timer(Game.alien_move_side,1000)
@@ -331,7 +332,7 @@ class GameTrainer(Game):
             if self.kills == Game.nAliens:
                 self.hard_reset()
                 pygame.time.wait(1000)
-            if self.nMemoryStored == batch_size:
+            if self.nMemoryStored == GameTrainer.batch_size:
                 print("TRAINING")
                 self.player.train(self.training)
                 self.gameExit = True
@@ -438,7 +439,7 @@ class SimpleGame(Game):
                         #REWARD
                         self.kills += 1
                         self.simpleStore(3,self.frameAtFire)
-            if self.kills == Game.nAliens:
+            if self.kills == (Game.nAliens * .75) :
                 self.hard_reset()
                 pygame.time.wait(1000)
             if self.nMemoryStored == SimpleGame.batch_size and self.train:
@@ -451,26 +452,27 @@ class SimpleGame(Game):
 
 
 if __name__ == "__main__":
-    player = QLearningNet(previousModel = True,
-                          randomActions = False)
-    game = SimpleGame(player)
-
     ## TO SEE RESULTS
-    game.playGame()
+    # player = QLearningNet(previousModel = True,
+    #                       randomActions = False)
+    # game = SimpleGame(player)
+    # game.playGame()
 
     # TO TRAIN THE MODEL FURTHER
-
-    # for totalLoop in range(100):
-    #     n = 100
-    #     game.playGame(train = True)s
-    #     for i in range(n): #Until I cancel it I forget how 
-    #         game.playGame(train = True))
-    #         if game.nMemoryStored < game.batch_size:
-    #             player.train(game.training,False)
-    #             print("training")
-    #         game.hard_reset()
-    #         print(f'new game {i} of {n}')
-    #     player.train(game.training,True)
-    #     player.store_weights()
-    #     print(f"Target Update {totalLoop} of 100")
+    player = QLearningNet(previousModel = False,
+                          randomActions = True)
+    game = SimpleGame(player)
+    for totalLoop in range(100):
+        n = 50
+        game.playGame(train = True)
+        for i in range(n): 
+            game.playGame(train = True)
+            if game.nMemoryStored < game.batch_size:
+                player.train(game.training,False)
+                print("training")
+            game.hard_reset()
+            print(f'new game {i} of {n}')
+        player.train(game.training,True)
+        player.store_weights(filepath = f"Models/results_{totalLoop}")
+        print(f"Target Update {totalLoop} of 100")
 
