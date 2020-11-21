@@ -7,7 +7,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 class QLearningNet:
     def __init__(self, name='QLearningNet',
-                  previousModel = False,randomActions = False,filepath = "spaceinvaders/models/model.h5"):
+                  previousModel = False,randomActions = False,filepath = "models/model.h5"):
         self.state_size = [120,140,4]
         self.action_size = 3
         self.learning_rate = 0.000025

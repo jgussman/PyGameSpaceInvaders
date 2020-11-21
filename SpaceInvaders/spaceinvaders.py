@@ -20,7 +20,7 @@ class Game:
     white = (255,255,255)
     columns = range(40,80,5)
     rows = range(8,30,3)
-    nAliens = len(range(8,30,3)) * len(range(40,80,5))
+    nAliens = 108
     alien_move_side = pygame.USEREVENT + 1
     alien_move_down = pygame.USEREVENT + 2
     defender_reload = pygame.USEREVENT + 3
@@ -350,6 +350,7 @@ class SimpleGame(Game):
     batch_size = 64
     columns = range(15,105,10)
     rows = range(14,82,6)
+    endGame = USEREVENT + 8
 
     def __init__(self,player,level = 1, score = 0,lives = 3,train = False):
         """
@@ -387,6 +388,7 @@ class SimpleGame(Game):
         pygame.time.set_timer(Game.defender_reload,600)
         pygame.time.set_timer(Game.player_move,150)
         pygame.time.set_timer(Game.save_memory_slot,randint(0,30))
+        pygame.time.set_timer(SimpleGame.endGame,120000)
         self.frameAtFire = pygame.surfarray.array3d(self.gameDisplay)
         while not self.gameExit:
             # game events
@@ -394,6 +396,9 @@ class SimpleGame(Game):
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     quit()
+                if event.type == SimpleGame.endGame:
+                    print(Game.nAliens - len(self.armada))
+                    self.gameExit = True
                 if event.type == Game.player_move:
                     curFrame = pygame.surfarray.array3d(self.gameDisplay)
                     curFrame = Game.grayScaleConvert(curFrame)
@@ -439,19 +444,28 @@ class SimpleGame(Game):
                         #REWARD
                         self.kills += 1
                         self.simpleStore(3,self.frameAtFire)
-            if self.kills == (Game.nAliens * .75) :
-                self.hard_reset()
-                pygame.time.wait(1000)
-            if self.nMemoryStored == SimpleGame.batch_size and self.train:
-                print("TRAINING")
-                self.player.train(self.training,False)
-                self.gameExit = True
+            # if self.kills == (Game.nAliens * .75) :
+            #     self.hard_reset()
+            #     pygame.time.wait(1000)
+            # if self.nMemoryStored == SimpleGame.batch_size and self.train:
+            #     print("TRAINING")
+            #     self.player.train(self.training,False)
+            #     self.gameExit = True
             pygame.display.update()
             Game.clock.tick(30)
 
 
 
 if __name__ == "__main__":
+    baseModel = "Models/results_i.h5"
+    allModels = [f"Models/results_{i}.h5" for i in range(4)]
+    allModels.append("Models/model.h5")
+    for model in allModels:
+        player = QLearningNet(previousModel = True,
+                              randomActions = False,
+                              filepath = model)
+        game = SimpleGame(player)
+        game.playGame()
     ## TO SEE RESULTS
     # player = QLearningNet(previousModel = True,
     #                       randomActions = False)
