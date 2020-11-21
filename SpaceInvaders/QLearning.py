@@ -3,10 +3,6 @@ from tensorflow import keras
 from random import randint
 import os
 
-from tensorflow.python.keras.backend import dropout
-from tensorflow.python.ops.gen_array_ops import prevent_gradient
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-
 class QLearningNet:
     def __init__(self, name='QLearningNet',previousModel = False,randomActions = False):
         self.state_size = [120,140,4]
@@ -71,8 +67,6 @@ class QLearningNet:
       for point in batch:
         reward,state = point
         
-
-        # Feed forward in predict net
         # Feed forward in target net
         Q_target = self.target_model.predict(state)
         # add reward to target net values
@@ -81,7 +75,7 @@ class QLearningNet:
           q_values = self.predict_model(state)
           # Find the loss 
           loss = self.loss(max(Q_update),max(q_values))
-        # update weights in predict
+        # update weights in predict using backpropogation
         if loss > 0:
           grads = tape.gradient(loss,self.predict_model.trainable_variables)
           self.optimizer.apply_gradients(zip(grads,self.predict_model.trainable_variables))

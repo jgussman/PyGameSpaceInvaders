@@ -4,18 +4,15 @@ import pygame
 from pygame.locals import *
 from random import randint
 import numpy as np
-# from AI import QLearningPlayer
-# import tensorflow as tf
-from collections import deque
-import random
-import warnings
 from QLearning import QLearningNet,RandomPlayer
-# from tensorflow.python.framework import ops
-from qLearningHelpers import *
-from PIL import Image
+
+
 
 
 class Game:
+    """
+    Base Class for Space Invaders Game that accepts human input
+    """
     #Class variables that are consistent within all instances of games
     display_width = 100
     display_height = 100
@@ -51,7 +48,7 @@ class Game:
         r, g, b = mem[:,:,0], mem[:,:,1], mem[:,:,2]
         return 0.2989 * r + 0.5870 * g + 0.1140 * b
 
-    def __init__(self,player,level = 1, score = 0,lives = 3):
+    def __init__(self,player,level = 1, score = 0,lives = 3,train = False):
         """
         Takes a player OBJECT as the argument. 
         """
@@ -60,6 +57,7 @@ class Game:
         self.gameDisplay = pygame.display.set_mode((Game.display_width,Game.display_height))
         self.gameScore = score
         self.gameExit = False
+        self.train = train
         self.armada = []
         for c in Game.columns:
             for r in Game.rows:
@@ -181,9 +179,9 @@ class Game:
             for alien in self.armada: alien.draw()
             # Colisions
             if self.defender.x < 0:
-                self.defender.x = 1
+                self.defender.x = 95
             if self.defender.x > 100:
-                self.defender.x = 99
+                self.defender.x = 0
             for bullet in self.defender.bullets:
                 if bullet.y < 0:
                     self.defender.bullets.remove(bullet)
@@ -229,6 +227,10 @@ class Game:
 
 
 class GameTrainer(Game):
+    """
+    Sub Class of Original Space Invaders Game
+    Used to train QLearner object
+    """
 
     def playGame(self):
         pygame.time.set_timer(Game.alien_move_side,1000)
@@ -339,12 +341,16 @@ class GameTrainer(Game):
             Game.clock.tick(30)
 
 class SimpleGame(Game):
+    """
+    Same as GameTrainer but the simplified version
+    of Space Invaders
+    """
 
     batch_size = 64
     columns = range(15,105,10)
     rows = range(14,82,6)
 
-    def __init__(self,player,level = 1, score = 0,lives = 3):
+    def __init__(self,player,level = 1, score = 0,lives = 3,train = False):
         """
         Takes a player OBJECT as the argument. 
         """
@@ -353,6 +359,7 @@ class SimpleGame(Game):
         self.gameDisplay = pygame.display.set_mode((Game.display_width,Game.display_height))
         self.gameScore = score
         self.gameExit = False
+        self.train = train
         self.armada = []
         for c in SimpleGame.columns:
             for r in SimpleGame.rows:
@@ -376,11 +383,7 @@ class SimpleGame(Game):
         self.nMemoryStored += 1
 
     def playGame(self):
-        #pygame.time.set_timer(Game.alien_move_side,1000)
-        #pygame.time.set_timer(Game.alien_move_down,5000)
         pygame.time.set_timer(Game.defender_reload,600)
-        #pygame.time.set_timer(Game.increase_velocity,10000)
-        #pygame.time.set_timer(Game.alien_fire_bullet,750)
         pygame.time.set_timer(Game.player_move,150)
         pygame.time.set_timer(Game.save_memory_slot,randint(0,30))
         self.frameAtFire = pygame.surfarray.array3d(self.gameDisplay)
@@ -409,13 +412,6 @@ class SimpleGame(Game):
                 if event.type == Game.defender_reload:
                     self.defender.loaded = True
                     pygame.time.set_timer(Game.defender_reload,1000)
-                # if event.type == Game.increase_velocity:
-                #     Alien.increase_velocity()
-                # if event.type == Game.alien_fire_bullet:
-                #     self.armada[randint(0,len(self.armada)-1)].fire_bullet()
-                # if event.type == Game.save_memory_slot:
-                #     self.memory[self.memoryCounter] = pygame.surfarray.array3d(self.gameDisplay)
-                #     self.memoryCounter = (self.memoryCounter + 1) % 4
 
             # displaying score
             text = self.font.render(f"Score: {self.gameScore}",True,Game.white)
@@ -424,13 +420,12 @@ class SimpleGame(Game):
 
             self.defender.draw()
             for bullet in self.defender.bullets: bullet.tick()
-            #for bullet in Alien.bullets: bullet.tick()
             for alien in self.armada: alien.draw()
             # Colisions
             if self.defender.x < 0:
-                self.defender.x = 1
-            if self.defender.x > Game.display_width:
                 self.defender.x = 95
+            if self.defender.x > Game.display_width:
+                self.defender.x = 1
             for bullet in self.defender.bullets:
                 if bullet.y < 0:
                     self.defender.bullets.remove(bullet)
@@ -443,29 +438,13 @@ class SimpleGame(Game):
                         #REWARD
                         self.kills += 1
                         self.simpleStore(3,self.frameAtFire)
-
-            # for bullet in Alien.bullets:
-            #     if bullet.y > Game.display_height:
-            #         Alien.bullets.remove(bullet)
-            #         self.gameScore += 1 * (self.level)
-            #         self.storeMemory(1)
-            #     if (bullet.x in range(int(self.defender.x),int(self.defender.x+self.defender.w)+1) and
-            #         bullet.y in range(int(self.defender.y),int(self.defender.y+self.defender.h)+1)):
-            #         self.lives -= 1
-            #         if self.lives == 0:
-            #             self.gameExit = True
-            #         self.soft_reset()
-            #         pygame.time.wait(1000)
-            #         break
             if self.kills == Game.nAliens:
                 self.hard_reset()
                 pygame.time.wait(1000)
-            # if self.nMemoryStored == SimpleGame.batch_size:
-            #     print("TRAINING")
-            #     self.player.train(self.training,False)
-            #     self.gameExit = True
-                # Change to reset quickly at first 
-                # then let it play longer as it gets better
+            if self.nMemoryStored == SimpleGame.batch_size and self.train:
+                print("TRAINING")
+                self.player.train(self.training,False)
+                self.gameExit = True
             pygame.display.update()
             Game.clock.tick(30)
 
