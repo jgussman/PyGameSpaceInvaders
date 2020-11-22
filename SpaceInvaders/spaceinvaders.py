@@ -459,26 +459,27 @@ class SimpleGame(Game):
 
 
 if __name__ == "__main__":
-    baseModel = "Models/results_i.h5"
-    allModels = [f"Models/results_{i}.h5" for i in range(4)]
-    allModels.append("Models/model.h5")
-    game = SimpleGame("None_Player")
-    for model in allModels:
-        newPlayer = QLearningNet(previousModel = True,
-                                 randomActions = False,
-                                 filepath = model)
-        game.set_player(newPlayer)
-        begin = time.perf_counter_ns()
-        game.playGame()
-        game.hard_reset()
-        end = time.perf_counter_ns()
-        print(model)
-        print(abs(begin - end))
-    ## TO SEE RESULTS
-    # player = QLearningNet(previousModel = True,
-    #                       randomActions = False)
-    # game = SimpleGame(player)
-    # game.playGame()
+    ## TO COMPARE MODELS
+    # baseModel = "Models/results_i.h5"
+    # allModels = [f"Models/results_{i}.h5" for i in range(4)]
+    # allModels.append("Models/model.h5")
+    # game = SimpleGame("None_Player")
+    # for model in allModels:
+    #     newPlayer = QLearningNet(previousModel = True,
+    #                              randomActions = False,
+    #                              filepath = model)
+    #     game.set_player(newPlayer)
+    #     begin = time.perf_counter_ns()
+    #     game.playGame()
+    #     game.hard_reset()
+    #     end = time.perf_counter_ns()
+    #     print(model)
+    #     print(abs(begin - end))
+    ## TO SEE FINAL RESULTS
+    player = QLearningNet(previousModel = True,
+                          randomActions = False)
+    game = SimpleGame(player)
+    game.playGame()
     # TO TRAIN THE MODEL FURTHER
     # for totalLoop in range(3,100):
     #     player = QLearningNet(previousModel = True,
