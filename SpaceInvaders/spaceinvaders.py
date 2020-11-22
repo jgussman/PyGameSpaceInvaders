@@ -353,6 +353,9 @@ class SimpleGame(Game):
     rows = range(14,82,6)
     endGame = USEREVENT + 8
 
+    def set_player(self,newPlayer):
+        self.player = newPlayer
+
     def __init__(self,player,level = 1, score = 0,lives = 3,train = False):
         """
         Takes a player OBJECT as the argument. 
@@ -444,7 +447,7 @@ class SimpleGame(Game):
                         #REWARD
                         self.kills += 1
                         self.simpleStore(3,self.frameAtFire)
-            if self.kills == (Game.nAliens * .75) :
+            if self.kills == int(Game.nAliens * .75):
                 self.gameExit = True
             # if self.nMemoryStored == SimpleGame.batch_size and self.train:
             #     print("TRAINING")
@@ -459,15 +462,18 @@ if __name__ == "__main__":
     baseModel = "Models/results_i.h5"
     allModels = [f"Models/results_{i}.h5" for i in range(4)]
     allModels.append("Models/model.h5")
+    game = SimpleGame("None_Player")
     for model in allModels:
+        newPlayer = QLearningNet(previousModel = True,
+                                 randomActions = False,
+                                 filepath = model)
+        game.set_player(newPlayer)
         begin = time.perf_counter_ns()
-        player = QLearningNet(previousModel = True,
-                              randomActions = False,
-                              filepath = model)
-        game = SimpleGame(player)
         game.playGame()
+        game.hard_reset()
         end = time.perf_counter_ns()
-        print(begin - end)
+        print(model)
+        print(abs(begin - end))
     ## TO SEE RESULTS
     # player = QLearningNet(previousModel = True,
     #                       randomActions = False)
