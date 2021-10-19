@@ -1,5 +1,7 @@
 # B351-Final-Project
 
+By. Brady Anderson, Jude Gussman, and Nicholas Mobley
+
 Repository that serves to host Space Invaders AI project for Intro to AI course at IU.
 
 ## Main usage
